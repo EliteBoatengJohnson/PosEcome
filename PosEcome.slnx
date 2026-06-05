@@ -1,0 +1,48 @@
+<Solution>
+    <Folder Name="/src/">
+        <Project Path="src/PosSystem.Api/PosSystem.Api.csproj" />
+        <Project Path="src/PosSystem.Infrastructure/PosSystem.Infrastructure.csproj" />
+        <Project Path="src/PosSystem.SharedKernel/PosSystem.SharedKernel.csproj" />
+    </Folder>
+    <Folder Name="/src/Modules/" />
+    <Folder Name="/src/Modules/Auth/">
+        <Project Path="src/Modules/Auth/PosSystem.Modules.Auth.csproj" />
+    </Folder>
+    <Folder Name="/src/Modules/Branches/">
+        <Project Path="src/Modules/Branches/PosSystem.Modules.Branches.csproj" />
+    </Folder>
+    <Folder Name="/src/Modules/Customers/">
+        <Project Path="src/Modules/Customers/PosSystem.Modules.Customers.csproj" />
+    </Folder>
+    <Folder Name="/src/Modules/Finance/">
+        <Project Path="src/Modules/Finance/PosSystem.Modules.Finance.csproj" />
+    </Folder>
+    <Folder Name="/src/Modules/Inventory/">
+        <Project Path="src/Modules/Inventory/PosSystem.Modules.Inventory.csproj" />
+    </Folder>
+    <Folder Name="/src/Modules/Notifications/">
+        <Project Path="src/Modules/Notifications/PosSystem.Modules.Notifications.csproj" />
+    </Folder>
+    <Folder Name="/src/Modules/Payments/">
+        <Project Path="src/Modules/Payments/PosSystem.Modules.Payments.csproj" />
+    </Folder>
+    <Folder Name="/src/Modules/Products/">
+        <Project Path="src/Modules/Products/PosSystem.Modules.Products.csproj" />
+    </Folder>
+    <Folder Name="/src/Modules/Reports/">
+        <Project Path="src/Modules/Reports/PosSystem.Modules.Reports.csproj" />
+    </Folder>
+    <Folder Name="/src/Modules/Sales/">
+        <Project Path="src/Modules/Sales/PosSystem.Modules.Sales.csproj" />
+    </Folder>
+    <Folder Name="/src/Modules/Suppliers/">
+        <Project Path="src/Modules/Suppliers/PosSystem.Modules.Suppliers.csproj" />
+    </Folder>
+    <Folder Name="/src/Modules/Users/">
+        <Project Path="src/Modules/Users/PosSystem.Modules.Users.csproj" />
+    </Folder>
+    <Folder Name="/tests/">
+        <Project Path="tests/PosSystem.Api.Tests/PosSystem.Api.Tests.csproj" />
+        <Project Path="tests/PosSystem.Modules.Sales.Tests/PosSystem.Modules.Sales.Tests.csproj" />
+    </Folder>
+</Solution>

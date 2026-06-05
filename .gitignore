@@ -1,0 +1,12 @@
+# IDE folders and user settings
+.idea/
+.vs/
+*.DotSettings.user
+
+# Build outputs
+bin/
+obj/
+
+# Configuration and secrets
+appsettings.json
+appsettings.Development.json
