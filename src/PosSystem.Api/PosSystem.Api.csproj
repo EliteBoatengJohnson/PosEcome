@@ -7,44 +7,44 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="AspNetCore.HealthChecks.Redis" Version="9.0.0"/>
-        <PackageReference Include="AspNetCore.HealthChecks.SqlServer" Version="9.0.0"/>
-        <PackageReference Include="BCrypt.Net-Next" Version="4.2.0"/>
-        <PackageReference Include="ClosedXML" Version="0.105.0"/>
-        <PackageReference Include="FluentValidation.AspNetCore" Version="11.3.1"/>
-        <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="10.0.8"/>
-        <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.8"/>
-        <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.8">
+        <PackageReference Include="AspNetCore.HealthChecks.Redis" />
+        <PackageReference Include="AspNetCore.HealthChecks.SqlServer" />
+        <PackageReference Include="BCrypt.Net-Next" />
+        <PackageReference Include="ClosedXML" />
+        <PackageReference Include="FluentValidation.AspNetCore" />
+        <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" />
+        <PackageReference Include="Microsoft.AspNetCore.OpenApi" />
+        <PackageReference Include="Microsoft.EntityFrameworkCore.Design">
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
             <PrivateAssets>all</PrivateAssets>
         </PackageReference>
-        <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="10.0.8"/>
-        <PackageReference Include="Microsoft.Extensions.Caching.StackExchangeRedis" Version="10.0.8"/>
-        <PackageReference Include="QRCoder" Version="1.8.0"/>
-        <PackageReference Include="QuestPDF" Version="2026.5.0"/>
-        <PackageReference Include="Scalar.AspNetCore" Version="2.14.14"/>
-        <PackageReference Include="Serilog.AspNetCore" Version="10.0.0"/>
-        <PackageReference Include="Serilog.Sinks.Console" Version="6.1.1"/>
-        <PackageReference Include="Serilog.Sinks.File" Version="7.0.0"/>
-        <PackageReference Include="StackExchange.Redis" Version="2.13.17"/>
-        <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="8.18.0"/>
+        <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" />
+        <PackageReference Include="Microsoft.Extensions.Caching.StackExchangeRedis" />
+        <PackageReference Include="QRCoder" />
+        <PackageReference Include="QuestPDF" />
+        <PackageReference Include="Scalar.AspNetCore" />
+        <PackageReference Include="Serilog.AspNetCore" />
+        <PackageReference Include="Serilog.Sinks.Console" />
+        <PackageReference Include="Serilog.Sinks.File" />
+        <PackageReference Include="StackExchange.Redis" />
+        <PackageReference Include="System.IdentityModel.Tokens.Jwt" />
     </ItemGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\PosSystem.SharedKernel\PosSystem.SharedKernel.csproj"/>
-        <ProjectReference Include="..\PosSystem.Infrastructure\PosSystem.Infrastructure.csproj"/>
-        <ProjectReference Include="..\Modules\Auth\PosSystem.Modules.Auth.csproj"/>
-        <ProjectReference Include="..\Modules\Sales\PosSystem.Modules.Sales.csproj"/>
-        <ProjectReference Include="..\Modules\Inventory\PosSystem.Modules.Inventory.csproj"/>
-        <ProjectReference Include="..\Modules\Products\PosSystem.Modules.Products.csproj"/>
-        <ProjectReference Include="..\Modules\Customers\PosSystem.Modules.Customers.csproj"/>
-        <ProjectReference Include="..\Modules\Suppliers\PosSystem.Modules.Suppliers.csproj"/>
-        <ProjectReference Include="..\Modules\Users\PosSystem.Modules.Users.csproj"/>
-        <ProjectReference Include="..\Modules\Reports\PosSystem.Modules.Reports.csproj"/>
-        <ProjectReference Include="..\Modules\Branches\PosSystem.Modules.Branches.csproj"/>
-        <ProjectReference Include="..\Modules\Payments\PosSystem.Modules.Payments.csproj"/>
-        <ProjectReference Include="..\Modules\Finance\PosSystem.Modules.Finance.csproj"/>
-        <ProjectReference Include="..\Modules\Notifications\PosSystem.Modules.Notifications.csproj"/>
+        <ProjectReference Include="..\PosSystem.SharedKernel\PosSystem.SharedKernel.csproj" />
+        <ProjectReference Include="..\PosSystem.Infrastructure\PosSystem.Infrastructure.csproj" />
+        <ProjectReference Include="..\Modules\Auth\PosSystem.Modules.Auth.csproj" />
+        <ProjectReference Include="..\Modules\Sales\PosSystem.Modules.Sales.csproj" />
+        <ProjectReference Include="..\Modules\Inventory\PosSystem.Modules.Inventory.csproj" />
+        <ProjectReference Include="..\Modules\Products\PosSystem.Modules.Products.csproj" />
+        <ProjectReference Include="..\Modules\Customers\PosSystem.Modules.Customers.csproj" />
+        <ProjectReference Include="..\Modules\Suppliers\PosSystem.Modules.Suppliers.csproj" />
+        <ProjectReference Include="..\Modules\Users\PosSystem.Modules.Users.csproj" />
+        <ProjectReference Include="..\Modules\Reports\PosSystem.Modules.Reports.csproj" />
+        <ProjectReference Include="..\Modules\Branches\PosSystem.Modules.Branches.csproj" />
+        <ProjectReference Include="..\Modules\Payments\PosSystem.Modules.Payments.csproj" />
+        <ProjectReference Include="..\Modules\Finance\PosSystem.Modules.Finance.csproj" />
+        <ProjectReference Include="..\Modules\Notifications\PosSystem.Modules.Notifications.csproj" />
     </ItemGroup>
 
 </Project>

@@ -1,11 +1,11 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
     <ItemGroup>
-        <ProjectReference Include="..\..\PosSystem.SharedKernel\PosSystem.SharedKernel.csproj"/>
+        <ProjectReference Include="..\..\PosSystem.SharedKernel\PosSystem.SharedKernel.csproj" />
     </ItemGroup>
 
     <ItemGroup>
-        <PackageReference Include="BCrypt.Net-Next" Version="4.2.0"/>
+        <PackageReference Include="BCrypt.Net-Next" />
     </ItemGroup>
 
     <PropertyGroup>

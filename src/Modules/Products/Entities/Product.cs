@@ -9,6 +9,9 @@ public class Product : BaseEntity
     public string Sku { get; set; } = default!;
     public string? Barcode { get; set; }
     public Guid CategoryId { get; set; }
+    
+    // 1. References Navigation (Many Products to One Category)
+    public Category Category { get; set; } = default!;
     public decimal SellingPrice { get; set; }
     public decimal CostPrice { get; set; }
     public decimal? DiscountPercent { get; set; }
@@ -25,4 +28,7 @@ public class Category : BaseEntity
     public string Name { get; set; } = default!;
     public Guid? ParentId { get; set; }
     public string? Description { get; set; }
+    
+    // 2. Collection Navigation Property  (One to Many Products)
+    public  ICollection<Product> Products { get; set; } = new List<Product>();
 }

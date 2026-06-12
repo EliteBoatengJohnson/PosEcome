@@ -1,21 +1,16 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
     <ItemGroup>
-        <ProjectReference Include="..\PosSystem.SharedKernel\PosSystem.SharedKernel.csproj"/>
-        <ProjectReference Include="..\Modules\Auth\PosSystem.Modules.Auth.csproj"/>
-        <ProjectReference Include="..\Modules\Sales\PosSystem.Modules.Sales.csproj"/>
-        <ProjectReference Include="..\Modules\Inventory\PosSystem.Modules.Inventory.csproj"/>
-        <ProjectReference Include="..\Modules\Products\PosSystem.Modules.Products.csproj"/>
-        <ProjectReference Include="..\Modules\Customers\PosSystem.Modules.Customers.csproj"/>
+        <ProjectReference Include="..\PosSystem.SharedKernel\PosSystem.SharedKernel.csproj" />
     </ItemGroup>
 
     <ItemGroup>
-        <PackageReference Include="BCrypt.Net-Next" Version="4.2.0"/>
-        <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.8">
+        <PackageReference Include="BCrypt.Net-Next" />
+        <PackageReference Include="Microsoft.EntityFrameworkCore.Design">
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
             <PrivateAssets>all</PrivateAssets>
         </PackageReference>
-        <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="10.0.8"/>
+        <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" />
     </ItemGroup>
 
     <PropertyGroup>
