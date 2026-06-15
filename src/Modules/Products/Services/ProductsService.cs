@@ -1,3 +1,7 @@
+using System.Globalization;
+using ClosedXML.Excel;
+using CsvHelper;
+using CsvHelper.Configuration;
 using Microsoft.EntityFrameworkCore;
 using PosSystem.Infrastructure;
 using PosSystem.Modules.Products.Entities;
@@ -102,16 +106,156 @@ public class ProductsService(PosDbContext db) : IProductService
         return p is null ? Result<ProductDto>.NotFound("Product not found") : Result<ProductDto>.Ok(ToDto(p));
     }
 
-    public Task<Result<int>> BulkImportAsync(Stream csvStream, CancellationToken ct = default)
+    public async Task<Result<int>> BulkImportAsync(Stream csvStream, CancellationToken ct = default)
     {
-        // TODO: parse CSV with CsvHelper, validate, insert
-        return Task.FromResult(Result<int>.Ok(0));
+        // ── 1. Configure CsvHelper reader ──────────────────────────────
+        // CsvHelper reads a Stream via StreamReader → CsvReader → GetRecords<T>.
+        // The ClassMap (ProductCsvMap) controls column-to-property mapping.
+        using var reader = new StreamReader(csvStream);
+        // creates a base configuration for the type csv header to be imported
+        using var csv = new CsvReader(reader, new CsvConfiguration(CultureInfo.InvariantCulture)
+        {
+            HasHeaderRecord = true,          // first row is column names
+            HeaderValidated = null,          // don't throw if extra columns exist
+            MissingFieldFound = null,        // don't throw on missing optional columns
+            TrimOptions = TrimOptions.Trim,  // strip whitespace from values
+        });
+
+        // Register the ClassMap so CsvHelper knows how to map CSV columns → ProductCsvRow
+        csv.Context.RegisterClassMap<ProductCsvMap>();
+
+        // ── 2. Read all rows from CSV ──────────────────────────────────
+        List<ProductCsvRow> rows;
+        try
+        {
+            rows = csv.GetRecords<ProductCsvRow>().ToList();
+        }
+        catch (CsvHelperException ex)
+        {
+            return Result<int>.Fail($"CSV parsing error: {ex.Message}");
+        }
+
+        if (rows.Count == 0)
+            return Result<int>.Fail("CSV file is empty or has no data rows");
+
+        // ── 3. Validate & deduplicate against existing SKUs ────────────
+        var incomingSkus = rows.Select(r => r.Sku).Distinct().ToList();
+        var existingSkus = await Products
+            .Where(p => incomingSkus.Contains(p.Sku))
+            .Select(p => p.Sku)
+            .ToListAsync(ct);
+
+        var existingSkuSet = existingSkus.ToHashSet(StringComparer.OrdinalIgnoreCase);
+        var seenSkus = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+        var productsToInsert = new List<Product>();
+
+        foreach (var row in rows)
+        {
+            // Skip rows with duplicate SKUs (already in DB or repeated in CSV)
+            if (existingSkuSet.Contains(row.Sku) || !seenSkus.Add(row.Sku))
+                continue;
+
+            productsToInsert.Add(new Product
+            {
+                Name = row.Name,
+                Description = row.Description,
+                Sku = row.Sku,
+                Barcode = row.Barcode,
+                CategoryId = row.CategoryId,
+                SellingPrice = row.SellingPrice,
+                CostPrice = row.CostPrice,
+                DiscountPercent = row.DiscountPercent,
+                TaxPercent = row.TaxPercent,
+                Unit = row.Unit,
+                TrackExpiry = row.TrackExpiry,
+                Variants = row.Variants,
+            });
+        }
+
+        if (productsToInsert.Count == 0)
+            return Result<int>.Ok(0);
+
+        // ── 4. Batch insert ────────────────────────────────────────────
+        // AddRange + SaveChanges sends a single INSERT with all rows.
+        Products.AddRange(productsToInsert);
+        await db.SaveChangesAsync(ct);
+
+        return Result<int>.Ok(productsToInsert.Count);
     }
 
-    public Task<Result<byte[]>> ExportAsync(CancellationToken ct = default)
+    public async Task<Result<byte[]>> ExportAsync(CancellationToken ct = default)
     {
-        // TODO: use ClosedXML to generate Excel
-        return Task.FromResult(Result<byte[]>.Ok(Array.Empty<byte>()));
+        // ── 1. Fetch all active products with their category names ──
+        var products = await Products
+            .Include(p => p.Category)
+            .Where(p => p.IsActive)
+            .OrderBy(p => p.Name)
+            .ToListAsync(ct);
+
+        // ── 2. Create workbook and worksheet ────────────────────────
+        using var workbook = new XLWorkbook();
+        //giving your sheets name
+        var ws = workbook.Worksheets.Add("Products");
+
+        // ── 3. Write header row ─────────────────────────────────────
+        var headers = new[]
+        {
+            "Name", "Description", "SKU", "Barcode", "Category",
+            "Selling Price", "Cost Price", "Discount %", "Tax %",
+            "Unit", "Track Expiry", "Active"
+        };
+
+        for (var i = 0; i < headers.Length; i++)
+            ws.Cell(1, i + 1).Value = headers[i];
+
+        // Style the header row
+        var headerRange = ws.Range(1, 1, 1, headers.Length);
+        headerRange.Style.Font.Bold = true;
+        headerRange.Style.Fill.BackgroundColor = XLColor.FromHtml("#4472C4");
+        headerRange.Style.Font.FontColor = XLColor.White;
+        headerRange.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
+
+        // ── 4. Write data rows ──────────────────────────────────────
+        for (var row = 0; row < products.Count; row++)
+        {
+            var p = products[row];
+            var r = row + 2; // row 1 is header, data starts at row 2
+
+            ws.Cell(r, 1).Value = p.Name;
+            ws.Cell(r, 2).Value = p.Description ?? "";
+            ws.Cell(r, 3).Value = p.Sku;
+            ws.Cell(r, 4).Value = p.Barcode ?? "";
+            ws.Cell(r, 5).Value = p.Category?.Name ?? "";
+            ws.Cell(r, 6).Value = p.SellingPrice;
+            ws.Cell(r, 7).Value = p.CostPrice;
+            ws.Cell(r, 8).Value = p.DiscountPercent ?? 0;
+            ws.Cell(r, 9).Value = p.TaxPercent ?? 0;
+            ws.Cell(r, 10).Value = p.Unit ?? "";
+            ws.Cell(r, 11).Value = p.TrackExpiry ? "Yes" : "No";
+            ws.Cell(r, 12).Value = p.IsActive ? "Yes" : "No";
+        }
+
+        // ── 5. Format currency and percentage columns ────────────────
+        var lastRow = products.Count + 1;
+        ws.Range(2, 6, lastRow, 7).Style.NumberFormat.Format = "#,##0.00";  // prices
+        ws.Range(2, 8, lastRow, 9).Style.NumberFormat.Format = "0.00";      // percentages
+
+        // ── 6. Auto-fit column widths to content ────────────────────
+        ws.Columns().AdjustToContents();
+
+        // ── 7. Add table-style borders ──────────────────────────────
+        var dataRange = ws.Range(1, 1, lastRow, headers.Length);
+        dataRange.Style.Border.InsideBorder = XLBorderStyleValues.Thin;
+        dataRange.Style.Border.InsideBorderColor = XLColor.LightGray;
+        dataRange.Style.Border.OutsideBorder = XLBorderStyleValues.Thin;
+        dataRange.Style.Border.OutsideBorderColor = XLColor.DarkGray;
+
+        // ── 8. Save to byte array ───────────────────────────────────
+        using var stream = new MemoryStream();
+        workbook.SaveAs(stream);
+
+        return Result<byte[]>.Ok(stream.ToArray());
     }
 
     public async Task<Result<List<CategoryDto>>> GetCategoriesAsync(CancellationToken ct = default)

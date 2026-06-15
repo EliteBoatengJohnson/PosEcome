@@ -15,5 +15,5 @@ public class ProductsModule : IModuleRegistration
     => services.AddScoped<IProductService, ProductsService>();
 
     public void MapEndpoints(IEndpointRouteBuilder app)
-        => ProductEnpoints.Map(app);
+        => ProductEndpoints.Map(app);
 }  

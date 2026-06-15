@@ -6,6 +6,8 @@
     </ItemGroup>
 
     <ItemGroup>
+        <PackageReference Include="ClosedXML" />
+        <PackageReference Include="CsvHelper" />
         <PackageReference Include="Microsoft.EntityFrameworkCore" />
         <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" />
     </ItemGroup>

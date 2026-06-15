@@ -1,12 +1,13 @@
-using Microsoft.AspNetCore.Builder;
+﻿using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
+using Microsoft.EntityFrameworkCore.Internal;
 using PosSystem.Modules.Products.Models;
 using PosSystem.Modules.Products.Services;
 
 namespace PosSystem.Modules.Products.Endpoints;
 
-public static class ProductEnpoints
+public static class ProductEndpoints
 {
     public static void Map(IEndpointRouteBuilder app)
     {
@@ -53,6 +54,10 @@ public static class ProductEnpoints
             var result = await svc.DeleteAsync(id, ct);
             return result.IsSuccess ? Results.Ok(result.Value) : Results.NotFound(result.Error);
         }).WithName("DeleteProduct");
+
+      
+        
+        
 
         // ── Categories ──
         var cats = app.MapGroup("/api/v1/categories").WithTags("Categories");
