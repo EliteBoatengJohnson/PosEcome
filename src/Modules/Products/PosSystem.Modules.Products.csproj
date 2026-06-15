@@ -2,6 +2,7 @@
 
     <ItemGroup>
         <ProjectReference Include="..\..\PosSystem.SharedKernel\PosSystem.SharedKernel.csproj"/>
+        <ProjectReference Include="..\..\PosSystem.Infrastructure\PosSystem.Infrastructure.csproj"/>
     </ItemGroup>
 
     <ItemGroup>
