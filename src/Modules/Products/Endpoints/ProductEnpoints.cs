@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.EntityFrameworkCore.Internal;
@@ -55,9 +55,25 @@ public static class ProductEndpoints
             return result.IsSuccess ? Results.Ok(result.Value) : Results.NotFound(result.Error);
         }).WithName("DeleteProduct");
 
-      
-        
-        
+        group.MapGet("/export", async (IProductService svc, CancellationToken ct) =>
+        {
+            var result = await svc.ExportAsync(ct);
+            return result.IsSuccess
+                ? Results.File(result.Value!,
+                    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                    "products.xlsx")
+                : Results.StatusCode(result.StatusCode);
+        }).WithName("ExportProducts");
+
+        group.MapPost("/import", async (IFormFile file, IProductService svc, CancellationToken ct) =>
+        {
+            await using var stream = file.OpenReadStream();
+            var result = await svc.BulkImportAsync(stream, ct);
+            return result.IsSuccess
+                ? Results.Ok(new { imported = result.Value })
+                : Results.BadRequest(result.Error);
+        }).WithName("ImportProducts").DisableAntiforgery();
+
 
         // ── Categories ──
         var cats = app.MapGroup("/api/v1/categories").WithTags("Categories");
