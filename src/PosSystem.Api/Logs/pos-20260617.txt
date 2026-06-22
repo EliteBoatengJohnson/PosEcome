@@ -1,0 +1,1 @@
+2026-06-17 10:44:07.346 +00:00 [WRN] The property 'AppUser.Roles' is a collection or enumeration type with a value converter but with no value comparer. Set a value comparer to ensure the collection/enumeration elements are compared correctly.

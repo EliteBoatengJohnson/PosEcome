@@ -28,6 +28,7 @@ using Microsoft.IdentityModel.Tokens;
 using PosSystem.Infrastructure;
 using PosSystem.Modules.Auth;
 using PosSystem.Modules.Products;
+using PosSystem.Modules.Sales;
 using PosSystem.SharedKernel;
 using Scalar.AspNetCore;
 using Serilog;
@@ -58,8 +59,8 @@ var moduleAssemblies = new Assembly[]
 {
     typeof(PosSystem.Modules.Products.ProductsModule).Assembly,  // Product, Category entities
     typeof(PosSystem.Modules.Auth.AuthModule).Assembly,           // AppUser entity
+    typeof(PosSystem.Modules.Sales.SalesModule).Assembly,         // Sale, SaleItem entities
     // ↓ Add other module assemblies here as they gain entities ↓
-    // typeof(PosSystem.Modules.Sales.SalesModule).Assembly,
     // typeof(PosSystem.Modules.Inventory.InventoryModule).Assembly,
     // typeof(PosSystem.Modules.Customers.CustomersModule).Assembly,
 };
@@ -135,6 +136,7 @@ var modules = new IModuleRegistration[]
 {
     new ProductsModule(),
     new AuthModule(),
+    new SalesModule(),
     // ↓ Add other modules here as you implement them ↓
 };
 
