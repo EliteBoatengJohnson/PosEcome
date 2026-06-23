@@ -1,4 +1,5 @@
-﻿using PosSystem.SharedKernel;
+﻿
+using PosSystem.SharedKernel;
 
 
 namespace PosSystem.Modules.Auth.Entities;

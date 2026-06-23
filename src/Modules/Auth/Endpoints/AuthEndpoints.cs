@@ -13,6 +13,14 @@ public static class AuthEndpoints
     {
         var group = app.MapGroup("/api/v1/auth").WithTags("Auth");
 
+        group.MapPost("/register", async (RegisterRequest req, IAuthService svc, CancellationToken ct) =>
+        {
+            var result = await svc.RegisterAsync(req, ct);
+            return result.IsSuccess
+                ? Results.Created($"/api/v1/auth/me", result.Value)
+                : Results.Json(new { error = result.Error }, statusCode: result.StatusCode);
+        }).WithName("Register").AllowAnonymous();
+
         group.MapPost("/login", async (LoginRequest req, IAuthService svc, CancellationToken ct) =>
         {
             var result = await svc.LoginAsync(req, ct);

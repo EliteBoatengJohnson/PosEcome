@@ -1,7 +1,13 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
     <ItemGroup>
         <ProjectReference Include="..\..\PosSystem.SharedKernel\PosSystem.SharedKernel.csproj"/>
+        <ProjectReference Include="..\..\PosSystem.Infrastructure\PosSystem.Infrastructure.csproj"/>
+    </ItemGroup>
+
+    <ItemGroup>
+        <PackageReference Include="Microsoft.EntityFrameworkCore" />
+        <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" />
     </ItemGroup>
 
     <PropertyGroup>

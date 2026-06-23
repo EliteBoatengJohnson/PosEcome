@@ -10,6 +10,39 @@ public class AuthService(PosDbContext db, TokenService tokenService) : IAuthServ
 {
     private DbSet<AppUser> Users => db.Set<AppUser>();
 
+    // ── Register ─────────────────────────────────────────────────────
+    public async Task<Result<UserProfile>> RegisterAsync(RegisterRequest request, CancellationToken ct = default)
+    {
+        // 1. Check if email already exists
+        var exists = await Users.AnyAsync(u => u.Email == request.Email && !u.IsDeleted, ct);
+        if (exists)
+            return Result<UserProfile>.Fail("A user with this email already exists.", 409);
+
+        // 2. Hash the password with BCrypt
+        var passwordHash = BCrypt.Net.BCrypt.HashPassword(request.Password);
+
+        // 3. Create the user entity
+        var user = new AppUser
+        {
+            FirstName = request.FirstName,
+            LastName = request.LastName,
+            Email = request.Email,
+            PasswordHash = passwordHash,
+            Phone = request.Phone,
+            Branch = request.BranchId,
+            IsActive = true,
+            Roles = request.Roles ?? ["Cashier"],  // default role if none provided
+        };
+
+        // 4. Save to database
+        Users.Add(user);
+        await db.SaveChangesAsync(ct);
+
+        // 5. Return the created profile
+        return Result<UserProfile>.Created(ToProfile(user));
+    }
+
+    // ── Login ────────────────────────────────────────────────────────
     public async Task<Result<LoginResponse>> LoginAsync(LoginRequest request, CancellationToken ct = default)
     {
         // 1. Find user by email
@@ -104,5 +137,5 @@ public class AuthService(PosDbContext db, TokenService tokenService) : IAuthServ
     }
 
     private static UserProfile ToProfile(AppUser u) => new(
-        u.Id, u.FirstName, u.LastName, u.Email, u.Branch, u.Roles);
+        u.Id, u.FirstName, u.LastName, u.Email, u.Phone, u.Branch, u.Roles);
 }

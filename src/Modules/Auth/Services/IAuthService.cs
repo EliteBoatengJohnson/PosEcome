@@ -5,6 +5,7 @@ namespace PosSystem.Modules.Auth.Services;
 
 public interface IAuthService
 {
+    Task<Result<UserProfile>> RegisterAsync(RegisterRequest request, CancellationToken ct = default);
     Task<Result<LoginResponse>> LoginAsync(LoginRequest request, CancellationToken ct = default);
     Task<Result<LoginResponse>> RefreshTokenAsync(string refreshToken, CancellationToken ct = default);
     Task<Result<bool>> LogoutAsync(string refreshToken, CancellationToken ct = default);

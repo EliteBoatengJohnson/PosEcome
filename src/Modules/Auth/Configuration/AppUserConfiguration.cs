@@ -1,5 +1,6 @@
 using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using PosSystem.Modules.Auth.Entities;
 
@@ -24,10 +25,22 @@ public class AppUserConfiguration : IEntityTypeConfiguration<AppUser>
         // SQL Server doesn't have an array type, so we serialize
         // ["SuperAdmin", "Cashier"] into a JSON string column.
         // EF automatically converts between List<string> ↔ JSON on read/write.
+        //
+        // The ValueComparer tells EF HOW to compare two List<string> instances.
+        // Without it, EF compares by reference (are they the same object?)
+        // which means user.Roles.Add("Cashier") + SaveChanges() would be
+        // silently ignored because the list reference didn't change.
+        // With the comparer, EF compares the actual contents of the list.
         builder.Property(u => u.Roles).HasConversion(
             v => JsonSerializer.Serialize(v, (JsonSerializerOptions?)null),
             v => JsonSerializer.Deserialize<List<string>>(v, (JsonSerializerOptions?)null) ?? new()
-        ).HasColumnType("nvarchar(1000)");
+        )
+        .HasColumnType("nvarchar(1000)")
+        .Metadata.SetValueComparer(new ValueComparer<List<string>>(
+            (a, b) => a != null && b != null && a.SequenceEqual(b),   // are they equal?
+            c => c.Aggregate(0, (hash, item) => HashCode.Combine(hash, item.GetHashCode())),  // hash
+            c => c.ToList()  // create a snapshot (copy) for change tracking
+        ));
 
         // ── Indexes ──────────────────────────────────────────────────
         // Email must be unique — prevents duplicate accounts
