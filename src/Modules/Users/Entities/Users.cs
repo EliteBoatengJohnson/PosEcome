@@ -1,5 +1,3 @@
-using System;
-using System.Collections.Generic;
 using PosSystem.SharedKernel;
 
 namespace PosSystem.Modules.Users.Entities
@@ -16,6 +14,6 @@ namespace PosSystem.Modules.Users.Entities
         public DateTime? LastLoginAt { get; set; }
         public string? RefreshToken { get; set; }
         public DateTime? RefreshTokenExpiry { get; set; }
-        public List<string> Roles { get; set; } = new List<string>();
+        public List<string> Roles { get; set; } = [];
     }
 }
