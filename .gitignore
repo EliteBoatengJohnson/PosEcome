@@ -10,3 +10,4 @@ obj/
 # Configuration and secrets
 appsettings.json
 appsettings.Development.json
+
