@@ -26,7 +26,7 @@ public class ProductsService(PosDbContext db) : IProductService
     public async Task<Result<PagedResult<ProductDto>>> GetAllAsync(
         int page, int pageSize, Guid? categoryId, string? search, CancellationToken ct = default)
     {
-        var q = Products.Include(p => p.Category).Where(p => p.IsActive).AsQueryable();
+        var q = Products.Include(p => p.Category).Where(p => p.IsActive).AsQueryable();// loads active products as queryable
 
         if (categoryId.HasValue)
             q = q.Where(p => p.CategoryId == categoryId);

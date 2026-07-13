@@ -59,10 +59,8 @@ var moduleAssemblies = new Assembly[]
 {
     typeof(PosSystem.Modules.Products.ProductsModule).Assembly,  // Product, Category entities
     typeof(PosSystem.Modules.Auth.AuthModule).Assembly,           // AppUser entity
-    typeof(PosSystem.Modules.Sales.SalesModule).Assembly,         // Sale, SaleItem entities
-    // ↓ Add other module assemblies here as they gain entities ↓
-    // typeof(PosSystem.Modules.Inventory.InventoryModule).Assembly,
-    // typeof(PosSystem.Modules.Customers.CustomersModule).Assembly,
+    typeof(PosSystem.Modules.Sales.SalesModule).Assembly,      // sales entities
+    typeof(PosSystem.Modules.Users.UsersModule).Assembly,      // users entiti
 };
 
 // Singleton because the list of assemblies never changes after startup.

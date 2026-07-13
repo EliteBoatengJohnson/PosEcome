@@ -1,6 +1,6 @@
 ﻿namespace PosSystem.Modules.Users;
 
-public class Class1
+public class UsersModule
 {
 
 }
