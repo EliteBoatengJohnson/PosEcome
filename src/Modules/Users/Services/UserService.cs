@@ -71,6 +71,35 @@ public class UserService(PosDbContext db): IUserService
         return Result<UserProfile>.Created(ToProfile(user));
 
     }
+
+    public async Task<Result<UserProfile>>  UpdateAsync( Guid id, UpdateUserRequest request, CancellationToken ct = default)
+    {
+        var user = await Users.FirstOrDefaultAsync(u => u.Id == id && !u.IsDeleted, ct);
+        if(user is null)
+        return Result<UserProfile>.NotFound("User not found");
+
+        if(request.FirstName is not null)
+            user.FirstName = request.FirstName;
+
+        if(request.LastName is not null)
+            user.LastName = request.LastName;
+
+        if(request.Phone is not null)
+            user.Phone = request.Phone;
+
+        if(request.Roles is not null)
+            user.Roles = request.Roles;
+
+        await db.SaveChangesAsync(ct);
+
+        return Result<UserProfile>.Ok(ToProfile(user));
+    }
+
+
+    public async Task<Result<bool>> AssignRolesAsync(Guid id, AssignRoleRequest request, CancellationToken ct = default)
+    {
+
+    }
     private static UserProfile ToProfile(User u)
     => new(u.Id, u.FirstName, u.LastName, u.Email, u.Phone, u.Branch, u.IsActive, u.Roles, u.CreatedAt, u.LastLoginAt, u.UpdatedAt);
 
