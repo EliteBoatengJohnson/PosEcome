@@ -10,7 +10,7 @@ public class AuthService(PosDbContext db, TokenService tokenService) : IAuthServ
 {
     private DbSet<AppUser> Users => db.Set<AppUser>();
 
-    // ── Register ─────────────────────────────────────────────────────
+    // ── Register 
     public async Task<Result<UserProfile>> RegisterAsync(RegisterRequest request, CancellationToken ct = default)
     {
         // 1. Check if email already exists
@@ -42,7 +42,7 @@ public class AuthService(PosDbContext db, TokenService tokenService) : IAuthServ
         return Result<UserProfile>.Created(ToProfile(user));
     }
 
-    // ── Login ────────────────────────────────────────────────────────
+    // ── Login 
     public async Task<Result<LoginResponse>> LoginAsync(LoginRequest request, CancellationToken ct = default)
     {
         // 1. Find user by email

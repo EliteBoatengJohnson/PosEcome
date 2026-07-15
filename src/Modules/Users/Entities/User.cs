@@ -9,7 +9,7 @@ namespace PosSystem.Modules.Users.Entities
         public string Email { get; set; } = default!;
         public string PasswordHash { get; set; } = default!;
         public string? Phone { get; set; }
-        public Guid BranchId { get; set; }
+        public Guid Branch { get; set; }
         public bool IsActive { get; set; }
         public DateTime? LastLoginAt { get; set; }
         public string? RefreshToken { get; set; }

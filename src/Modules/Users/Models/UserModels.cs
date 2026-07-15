@@ -6,7 +6,7 @@ public record CreateUserRequest(
     string Email,
     string Password,
     string? Phone,
-    Guid? BranchId,
+    Guid BranchId,
     List<string> Roles
 );
 
@@ -16,6 +16,7 @@ public record UpdateUserRequest(
     string? LastName,
     string? Phone,
     string? Email
+
 );
 
 public record AssignRoleRequest(List<string> Roles);
@@ -28,10 +29,10 @@ public record UserProfile(
     string LastName,
     string Email,
     string? Phone,
-    Guid? BranchId,
+    Guid BranchId,
     bool IsActive,
     List<string> Roles,
-    DateTime CreatedAt,
-    DateTime? LastLoginAt
-    
+    DateTime? CreatedAt,
+    DateTime? LastLoginAt,
+    DateTime? UpdatedAt
 );
