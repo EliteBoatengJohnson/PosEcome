@@ -11,7 +11,7 @@ public class BranchConfiguration : IEntityTypeConfiguration<Branch>
         builder.ToTable("Branches");
         builder.HasKey(b => b.Id);
         builder.Property(b => b.Name).IsRequired().HasMaxLength(200);
-        builder.Property(b => b.code).IsRequired().HasMaxLength(20);
+        builder.Property(b => b.Code).IsRequired().HasMaxLength(20);
         builder.Property(b => b.Email).HasMaxLength(256);
         builder.HasQueryFilter(b => !b.IsDeleted);
     }

@@ -5,7 +5,7 @@ namespace PosSystem.Modules.Branches.Entities;
 public class Branch : BaseEntity
 {
     public string Name {get; set;} = default!;
-    public string code {get; set;} = default!;
+    public string Code {get; set;} = default!;
 
     public string? Address {get; set;}
     public string? Phone {get; set;}
