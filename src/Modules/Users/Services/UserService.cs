@@ -8,7 +8,7 @@ namespace PosSystem.Modules.Users.Services;
 
 public class UserService(PosDbContext db): IUserService
 {   private DbSet<User> Users => db.Set<User>();
-    public  async Task<Result<PagedResult<UserProfile>>> GetResultAsync(
+    public  async Task<Result<PagedResult<UserProfile>>> GetAllAsync(
         int page, int pageSize, Guid? branchId, string? role, string search, CancellationToken ct = default)
     {
         var q = Users.Where(u => !u.IsDeleted).AsQueryable(); // loads active users as queryable
@@ -118,8 +118,39 @@ public class UserService(PosDbContext db): IUserService
         return Result<bool>.Ok(true);
     }
 
+    public async Task<Result<bool>> DeactivateUserAsync(Guid id, CancellationToken ct =default)
+    {
+        var user = await Users.FindAsync([id], ct);
+        if(user is null)
+        return Result<bool>.NotFound("User not found");
 
+        user.IsActive = false;
+        await db.SaveChangesAsync(ct);
+        return Result<bool>.Ok(true);
+    }
+
+    public async Task<Result<bool>> ReactivateUserAsync(Guid id, CancellationToken ct =default)
+    {
+        var user = await Users.FindAsync([id], ct);
+        if(user is null)
+        return Result<bool>.NotFound("User not found");
+
+        user.IsActive = true;
+        await db.SaveChangesAsync(ct);
+        return Result<bool>.Ok(true);
+    }
     
+    public async Task<Result<bool>> DeleteAsync(Guid id, CancellationToken ct = default)
+    {
+        var user = await Users.FindAsync([id], ct);
+        if(user is null)
+        return Result<bool>.NotFound("User not found");
+
+        user.IsDeleted = true;
+        await db.SaveChangesAsync(ct);
+        return Result<bool>.Ok(true);
+
+    }
     private static UserProfile ToProfile(User u)
     => new(u.Id, u.FirstName, u.LastName, u.Email, u.Phone, u.Branch, u.IsActive, u.Roles, u.CreatedAt, u.LastLoginAt, u.UpdatedAt);
 
