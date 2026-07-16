@@ -33,7 +33,7 @@ public class UserService(PosDbContext db): IUserService
 
     public async Task<Result<UserProfile>> GetByIdAsync(Guid id, CancellationToken ct = default)
     {
-        var q = await Users.FirstOrDefaultAsync(u => u.Id == id && !u.IsDeleted, ct);
+        var q = await Users.FindAsync([id] , ct);
         
 
         return q is null ?  Result<UserProfile>.NotFound("User not found")
@@ -74,7 +74,7 @@ public class UserService(PosDbContext db): IUserService
 
     public async Task<Result<UserProfile>>  UpdateAsync( Guid id, UpdateUserRequest request, CancellationToken ct = default)
     {
-        var user = await Users.FirstOrDefaultAsync(u => u.Id == id && !u.IsDeleted, ct);
+        var user = await Users.FindAsync([id], ct);
         if(user is null)
         return Result<UserProfile>.NotFound("User not found");
 
@@ -98,8 +98,28 @@ public class UserService(PosDbContext db): IUserService
 
     public async Task<Result<bool>> AssignRolesAsync(Guid id, AssignRoleRequest request, CancellationToken ct = default)
     {
+        var user = await Users.FindAsync([id], ct);
+        if(user is null)
+        return Result<bool>.NotFound("User not found");
 
+        user.Roles = request.Roles;
+        await db.SaveChangesAsync(ct);
+        return Result<bool>.Ok(true);
     }
+
+    public async Task<Result<bool>> TransferBranchAsync(Guid id, TransferBranchRequest request, CancellationToken ct = default)
+    {
+        var user = await Users.FindAsync([id], ct);
+        if(user is null)
+        return Result<bool>.NotFound("User not found");
+
+        user.Branch = request.BranchId;
+        await db.SaveChangesAsync(ct);
+        return Result<bool>.Ok(true);
+    }
+
+
+    
     private static UserProfile ToProfile(User u)
     => new(u.Id, u.FirstName, u.LastName, u.Email, u.Phone, u.Branch, u.IsActive, u.Roles, u.CreatedAt, u.LastLoginAt, u.UpdatedAt);
 

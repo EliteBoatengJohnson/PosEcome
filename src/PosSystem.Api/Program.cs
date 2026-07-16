@@ -1,25 +1,3 @@
-// ---------------------------------------------------------------------------
-// Program.cs — API Composition Root
-// ---------------------------------------------------------------------------
-// This is the TOP of the dependency graph. It references:
-//   - PosSystem.Infrastructure (for PosDbContext)
-//   - All module projects (for endpoints, services, entity configs)
-//
-// It wires everything together via DI so that:
-//   Infrastructure does NOT need to reference any module projects.
-//   → No circular dependencies.
-//
-// STARTUP FLOW:
-//   1. Configure logging (Serilog)
-//   2. Register module assemblies (for EF entity discovery)
-//   3. Configure JWT authentication (read secret key, set validation rules)
-//   4. Configure EF Core + SQL Server (connection string, retry policy)
-//   5. Register module services (each module wires its own DI)
-//   6. Build the app
-//   7. Set up middleware pipeline (auth → authorization → endpoints)
-//   8. Run
-// ---------------------------------------------------------------------------
-
 using System.Reflection;
 using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -29,6 +7,7 @@ using PosSystem.Infrastructure;
 using PosSystem.Modules.Auth;
 using PosSystem.Modules.Products;
 using PosSystem.Modules.Sales;
+using PosSystem.Modules.Users;
 using PosSystem.SharedKernel;
 using Scalar.AspNetCore;
 using Serilog;
@@ -104,9 +83,7 @@ builder.Services.AddAuthentication(options =>
 // Without this, authorization policies won't be enforced even if authentication works.
 builder.Services.AddAuthorization();
 
-// ── EF Core + SQL Server ─────────────────────────────────────────────────
-// Registers PosDbContext as a scoped service (one instance per HTTP request).
-// The connection string "Connection" comes from appsettings.json → ConnectionStrings.
+// sql server configuration 
 var connStr = builder.Configuration.GetConnectionString("Connection")!;
 builder.Services.AddDbContext<PosDbContext>(opts =>
     opts.UseSqlServer(connStr, sqlOpt =>
@@ -135,6 +112,7 @@ var modules = new IModuleRegistration[]
     new ProductsModule(),
     new AuthModule(),
     new SalesModule(),
+    new UsersModule(),
     // ↓ Add other modules here as you implement them ↓
 };
 
