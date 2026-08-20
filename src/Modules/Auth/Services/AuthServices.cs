@@ -1,3 +1,14 @@
+// AuthService - Authentication and session management.
+//
+// CROSS-MODULE COMMUNICATION:
+// AuthService needs to check if a user account is active/exists.
+// It does NOT reference Users.csproj directly.
+// Instead it injects IUserReader (defined in SharedKernel),
+// which is implemented by UserModule.UserReaderService.
+// Program.cs wires: services.AddScoped<IUserReader, UserReaderService>();
+// Auth.csproj -> SharedKernel (IUserReader, Result<T>)
+// Auth.csproj -> Users.csproj (No direct reference)
+
 using Microsoft.EntityFrameworkCore;
 using PosSystem.Infrastructure;
 using PosSystem.Modules.Auth.Entities;
@@ -6,7 +17,7 @@ using PosSystem.SharedKernel;
 
 namespace PosSystem.Modules.Auth.Services;
 
-public class AuthService(PosDbContext db, TokenService tokenService) : IAuthService
+public class AuthService(PosDbContext db, TokenService tokenService, IUserReader userReader) : IAuthService
 {
     private DbSet<AppUser> Users => db.Set<AppUser>();
 
@@ -53,12 +64,16 @@ public class AuthService(PosDbContext db, TokenService tokenService) : IAuthServ
         // 2. Verify password hash
         if (!BCrypt.Net.BCrypt.Verify(request.Password, user.PasswordHash))
             return Result<LoginResponse>.Unauthorized("Invalid email or password");
+        
+        // 3. Cross-module check via IUserReader(implemented by UserModule)
+        // Ask the users module: is this account still active?
+        // This call goes through DI - no direct Users.csproj reference.
 
-        // 3. Check if account is active
-        if (!user.IsActive)
-            return Result<LoginResponse>.Fail("Account is deactivated. Contact your administrator.", 403);
+        var isActive = await userReader.IsActiveAsync(user.Id, ct);
+        if(!isActive)
+        return Result<LoginResponse>.Fail("Account has been deactivated",403);
 
-        // 4. Generate tokens
+        //4 Issue tokens
         var accessToken = tokenService.GenerateAccessToken(user);
         var refreshToken = tokenService.GenerateRefreshToken();
 
@@ -66,9 +81,10 @@ public class AuthService(PosDbContext db, TokenService tokenService) : IAuthServ
         user.RefreshToken = refreshToken;
         user.RefreshTokenExpiry = tokenService.GetRefreshTokenExpiry();
         user.LastLoginAt = DateTime.UtcNow;
+
         await db.SaveChangesAsync(ct);
 
-        // 6. Return response
+        // return the login response
         return Result<LoginResponse>.Ok(new LoginResponse(
             accessToken,
             refreshToken,
@@ -85,6 +101,12 @@ public class AuthService(PosDbContext db, TokenService tokenService) : IAuthServ
 
         if (user is null || user.RefreshTokenExpiry < DateTime.UtcNow)
             return Result<LoginResponse>.Unauthorized("Invalid or expired refresh token");
+
+        // Cross-module check: is the account still active?
+        var isActive = await userReader.IsActiveAsync(user.Id, ct);
+        if(!isActive)
+            return Result<LoginResponse>.Unauthorized("Account has been deactivated");
+        
 
         // Generate new token pair
         var newAccessToken = tokenService.GenerateAccessToken(user);
@@ -107,7 +129,7 @@ public class AuthService(PosDbContext db, TokenService tokenService) : IAuthServ
     {
         var user = await Users.FirstOrDefaultAsync(u => u.RefreshToken == refreshToken, ct);
         if (user is null) return Result<bool>.Ok(true); // already logged out
-
+        // TODO: generate reset token and send email via NotificationsModule
         // Clear the refresh token so it can't be reused
         user.RefreshToken = null;
         user.RefreshTokenExpiry = null;
@@ -130,12 +152,24 @@ public class AuthService(PosDbContext db, TokenService tokenService) : IAuthServ
 
     public async Task<Result<UserProfile>> GetCurrentUserAsync(Guid userId, CancellationToken ct = default)
     {
-        var user = await Users.FirstOrDefaultAsync(u => u.Id == userId && !u.IsDeleted, ct);
-        return user is null
-            ? Result<UserProfile>.NotFound("User not found")
-            : Result<UserProfile>.Ok(ToProfile(user));
+        // Use IUserReader to get the full profile from UserModule
+        // instead of duplicating the query here
+        var summary = await userReader.GetByIdAsync(userId, ct);
+        return summary is null 
+                ? Result<UserProfile>.NotFound("User not found")
+                : Result<UserProfile>.Ok(ToProfile(summary));
+
+        // var user = await Users.FirstOrDefaultAsync(u => u.Id == userId && !u.IsDeleted, ct);
+        // return user is null
+        //     ? Result<UserProfile>.NotFound("User not found")
+        //     : Result<UserProfile>.Ok(ToProfile(user));
     }
 
     private static UserProfile ToProfile(AppUser u) => new(
-        u.Id, u.FirstName, u.LastName, u.Email, u.Phone, u.Branch, u.Roles);
+        u.Id,
+        u.FirstName,
+        u.LastName,
+        u.Email,
+        u.BranchId,
+        u.Roles);
 }
