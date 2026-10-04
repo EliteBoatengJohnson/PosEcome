@@ -83,7 +83,7 @@ builder.Services.AddAuthentication(options =>
 // Without this, authorization policies won't be enforced even if authentication works.
 builder.Services.AddAuthorization();
 
-// sql server configuration 
+// PostgreSQL configuration 
 var connStr = builder.Configuration.GetConnectionString("Connection")!;
 builder.Services.AddDbContext<PosDbContext>(opts =>
     opts.UseSqlServer(connStr, sqlOpt =>
