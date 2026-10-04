@@ -3,10 +3,11 @@ using PosSystem.Infrastructure;
 using PosSystem.Modules.Users.Entities;
 using PosSystem.Modules.Users.Models;
 using PosSystem.SharedKernel;
+using PosSystem.SharedKernel.Interfaces;
 
 namespace PosSystem.Modules.Users.Services;
 
-public class UserService(PosDbContext db): IUserService
+public class UserService(PosDbContext db, IAuthProvisioner authProvisioner): IUserService
 {   private DbSet<User> Users => db.Set<User>();
     public  async Task<Result<PagedResult<UserProfile>>> GetAllAsync(
         int page, int pageSize, Guid? branchId, string? role, string search, CancellationToken ct = default)
@@ -47,10 +48,12 @@ public class UserService(PosDbContext db): IUserService
         var exists = await Users.AnyAsync(u => u.Email == request.Email, ct );
          if(exists)
          return Result<UserProfile>.Fail("User with this email already exists", 409);
-
+        
+        var userId = Guid.NewGuid();
         // TODO hash user password with BCrypt finding a way to use 
          var user = new User
          {
+            Id = userId,
             FirstName = request.FirstName,
             LastName = request.LastName,
             Email = request.Email,
@@ -66,6 +69,12 @@ public class UserService(PosDbContext db): IUserService
          };
             
          Users.Add(user);
+
+         var authResult = await authProvisioner.CreateCredentialsAsync(userId, request.Email, request.Password,ct);
+         if(!authResult.IsSuccess)
+        {
+            return Result<UserProfile>.Fail("Failed to provision auth credentials", 500);
+        }
          await  db.SaveChangesAsync(ct);
 
         return Result<UserProfile>.Created(ToProfile(user));

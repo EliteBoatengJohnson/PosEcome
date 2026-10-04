@@ -11,37 +11,15 @@ public class AppUserConfiguration : IEntityTypeConfiguration<AppUser>
     public void Configure(EntityTypeBuilder<AppUser> builder)
     {
         // ── Table ────────────────────────────────────────────────────
-        builder.ToTable("Users");
+        builder.ToTable("Users", "auth");
 
         // ── Properties ───────────────────────────────────────────────
-        builder.Property(u => u.FirstName).HasMaxLength(100).IsRequired();
-        builder.Property(u => u.LastName).HasMaxLength(100).IsRequired();
+       
         builder.Property(u => u.Email).HasMaxLength(256).IsRequired();
         builder.Property(u => u.PasswordHash).HasMaxLength(512).IsRequired();
-        builder.Property(u => u.Phone).HasMaxLength(20);
         builder.Property(u => u.RefreshToken).HasMaxLength(512);
 
-        // ── Roles — List<string> stored as JSON ─────────────────────
-        // SQL Server doesn't have an array type, so we serialize
-        // ["SuperAdmin", "Cashier"] into a JSON string column.
-        // EF automatically converts between List<string> ↔ JSON on read/write.
-        //
-        // The ValueComparer tells EF HOW to compare two List<string> instances.
-        // Without it, EF compares by reference (are they the same object?)
-        // which means user.Roles.Add("Cashier") + SaveChanges() would be
-        // silently ignored because the list reference didn't change.
-        // With the comparer, EF compares the actual contents of the list.
-        builder.Property(u => u.Roles).HasConversion(
-            v => JsonSerializer.Serialize(v, (JsonSerializerOptions?)null),
-            v => JsonSerializer.Deserialize<List<string>>(v, (JsonSerializerOptions?)null) ?? new()
-        )
-        .HasColumnType("nvarchar(1000)")
-        .Metadata.SetValueComparer(new ValueComparer<List<string>>(
-            (a, b) => a != null && b != null && a.SequenceEqual(b),   // are they equal?
-            c => c.Aggregate(0, (hash, item) => HashCode.Combine(hash, item.GetHashCode())),  // hash
-            c => c.ToList()  // create a snapshot (copy) for change tracking
-        ));
-
+        
         // ── Indexes ──────────────────────────────────────────────────
         // Email must be unique — prevents duplicate accounts
         builder.HasIndex(u => u.Email).IsUnique();
