@@ -5,6 +5,7 @@ using System.Text;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using PosSystem.Modules.Auth.Entities;
+using PosSystem.Modules.Auth.Models;
 
 namespace PosSystem.Modules.Auth.Services;
 
@@ -55,7 +56,7 @@ public class TokenService
     /// Generates a signed JWT access token containing the user's claims.
     /// The token includes: userId, email, name, branch, and all roles.
     /// </summary>
-    public string GenerateAccessToken(AppUser user)
+    public string GenerateAccessToken(UserProfile user)
     {
         // ── 1. Build the claims list ─────────────────────────────────
         // Claims are key-value pairs embedded in the JWT payload.

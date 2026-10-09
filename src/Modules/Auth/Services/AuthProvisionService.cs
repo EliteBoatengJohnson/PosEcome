@@ -9,6 +9,8 @@ namespace PosSystem.Modules.Auth.Services;
 
 public class AuthProvisionerService(PosDbContext db) : IAuthProvisioner
 {
+
+    // the AuthProvisioner is responsible for creating the AppUser credentials in the Auth module when a new user is created
     public async Task<Result<bool>> CreateCredentialsAsync(Guid userId,string email, string plainTextPassword, CancellationToken ct=default)
     {
         var credentials = new AppUser

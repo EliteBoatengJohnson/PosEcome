@@ -43,6 +43,7 @@ public class UserService(PosDbContext db, IAuthProvisioner authProvisioner): IUs
 
 
 
+// create user 
     public async Task<Result<UserProfile>> CreateAsync(CreateUserRequest request, CancellationToken ct = default)
     {
         var exists = await Users.AnyAsync(u => u.Email == request.Email, ct );
@@ -57,15 +58,13 @@ public class UserService(PosDbContext db, IAuthProvisioner authProvisioner): IUs
             FirstName = request.FirstName,
             LastName = request.LastName,
             Email = request.Email,
-            // PasswordHash = BCrypt.Net.BCrypt.HashPassword(request.Password),
+            PasswordHash = BCrypt.Net.BCrypt.HashPassword(request.Password),
             Phone = request.Phone,
             Branch = request.BranchId,
             IsActive = true,
             CreatedAt = DateTime.UtcNow,
             LastLoginAt = DateTime.UtcNow,
             Roles = request.Roles,
-
-            
          };
             
          Users.Add(user);

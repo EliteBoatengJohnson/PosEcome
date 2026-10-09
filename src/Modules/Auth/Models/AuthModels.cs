@@ -7,7 +7,7 @@ public record RegisterRequest(
     string Email,
     string Password,
     string? Phone,
-    Guid BranchId,
+    Guid Branch,
     List<string>? Roles);
 public record RefreshTokens(string RefreshToken);
 public record  PasswordResetRequest(string Email);
@@ -21,5 +21,5 @@ public record UserProfile(
     string LastName,
     string Email,
     string? Phone,
-    Guid BranchId,
+    Guid Branch,
     List<string> Roles);

@@ -13,6 +13,7 @@ using Microsoft.EntityFrameworkCore;
 using PosSystem.Infrastructure;
 using PosSystem.Modules.Auth.Entities;
 using PosSystem.Modules.Auth.Models;
+using PosSystem.Modules.Auth.Services;
 using PosSystem.SharedKernel;
 
 namespace PosSystem.Modules.Auth.Services;
@@ -35,71 +36,75 @@ public class AuthService(PosDbContext db, TokenService tokenService, IUserReader
         // 3. Cross-module check via IUserReader(implemented by UserModule)
         // Ask the users module: is this account still active?
         // This call goes through DI - no direct Users.csproj reference.
+        var profile = await userReader.GetByIdAsync(user.Id, ct);
+        if(profile is null || !profile.IsActive)
+            return Result<LoginResponse>.Fail("Account has been deactivated or not found", 403);
 
-        var isActive = await userReader.IsActiveAsync(user.Id, ct);
-        if(!isActive)
-        return Result<LoginResponse>.Fail("Account has been deactivated",403);
+    
+       var userProfile = ToProfile(profile);
 
         //4 Issue tokens
-        var accessToken = tokenService.GenerateAccessToken(user);
+        var accessToken = tokenService.GenerateAccessToken(userProfile);
         var refreshToken = tokenService.GenerateRefreshToken();
 
         // 5. Store refresh token in DB
         user.RefreshToken = refreshToken;
         user.RefreshTokenExpiry = tokenService.GetRefreshTokenExpiry();
-        user.LastLoginAt = DateTime.UtcNow;
+        //user.LastLoginAt = DateTime.UtcNow;
 
         await db.SaveChangesAsync(ct);
 
-        // return the login response
+        // return the login response using the fetched profile from 
         return Result<LoginResponse>.Ok(new LoginResponse(
             accessToken,
             refreshToken,
             DateTime.UtcNow.AddMinutes(480),
-            ToProfile(user)
+            userProfile
         ));
     }
 
     public async Task<Result<LoginResponse>> RefreshTokenAsync(string refreshToken, CancellationToken ct = default)
     {
         // Find user by refresh token
-        var user = await Users.FirstOrDefaultAsync(
+        var authUser = await Users.FirstOrDefaultAsync(
             u => u.RefreshToken == refreshToken && !u.IsDeleted, ct);
 
-        if (user is null || user.RefreshTokenExpiry < DateTime.UtcNow)
+        if (authUser is null || authUser.RefreshTokenExpiry < DateTime.UtcNow)
             return Result<LoginResponse>.Unauthorized("Invalid or expired refresh token");
 
         // Cross-module check: is the account still active?
-        var isActive = await userReader.IsActiveAsync(user.Id, ct);
-        if(!isActive)
+        var profile = await userReader.GetByIdAsync(authUser.Id, ct);
+        if(profile is null || !profile.IsActive)
             return Result<LoginResponse>.Unauthorized("Account has been deactivated");
+
+        var authUserProfile = ToProfile(profile);
         
 
         // Generate new token pair
-        var newAccessToken = tokenService.GenerateAccessToken(user);
+        var newAccessToken = tokenService.GenerateAccessToken(authUserProfile);
         var newRefreshToken = tokenService.GenerateRefreshToken();
 
         // Rotate the refresh token (old one is now invalid)
-        user.RefreshToken = newRefreshToken;
-        user.RefreshTokenExpiry = tokenService.GetRefreshTokenExpiry();
+        authUser.RefreshToken = newRefreshToken;
+        authUser.RefreshTokenExpiry = tokenService.GetRefreshTokenExpiry();
         await db.SaveChangesAsync(ct);
 
         return Result<LoginResponse>.Ok(new LoginResponse(
             newAccessToken,
             newRefreshToken,
             DateTime.UtcNow.AddMinutes(480),
-            ToProfile(user)
+            authUserProfile
         ));
     }
 
     public async Task<Result<bool>> LogoutAsync(string refreshToken, CancellationToken ct = default)
     {
-        var user = await Users.FirstOrDefaultAsync(u => u.RefreshToken == refreshToken, ct);
-        if (user is null) return Result<bool>.Ok(true); // already logged out
-        // TODO: generate reset token and send email via NotificationsModule
+        var authUser = await Users.FirstOrDefaultAsync(u => u.RefreshToken == refreshToken, ct);
+        if (authUser is null) return Result<bool>.Ok(true); // already logged out
+
         // Clear the refresh token so it can't be reused
-        user.RefreshToken = null;
-        user.RefreshTokenExpiry = null;
+        authUser.RefreshToken = null;
+        authUser.RefreshTokenExpiry = null;
         await db.SaveChangesAsync(ct);
 
         return Result<bool>.Ok(true);
@@ -120,23 +125,18 @@ public class AuthService(PosDbContext db, TokenService tokenService, IUserReader
     public async Task<Result<UserProfile>> GetCurrentUserAsync(Guid userId, CancellationToken ct = default)
     {
         // Use IUserReader to get the full profile from UserModule
-        // instead of duplicating the query here
-        var summary = await userReader.GetByIdAsync(userId, ct);
-        return summary is null 
-                ? Result<UserProfile>.NotFound("User not found")
-                : Result<UserProfile>.Ok(ToProfile(summary));
-
-        // var user = await Users.FirstOrDefaultAsync(u => u.Id == userId && !u.IsDeleted, ct);
-        // return user is null
-        //     ? Result<UserProfile>.NotFound("User not found")
-        //     : Result<UserProfile>.Ok(ToProfile(user));
+    var profile = await userReader.GetByIdAsync(userId, ct);
+        var userProfile = ToProfile(profile);
+        return profile is null ? Result<UserProfile>.NotFound("user not found")
+        : Result<UserProfile>.Ok(userProfile);
     }
 
-    private static UserProfile ToProfile(AppUser u) => new(
+    private static UserProfile ToProfile(UserSummary u) => new(
         u.Id,
         u.FirstName,
         u.LastName,
         u.Email,
+        u.Phone,
         u.BranchId,
         u.Roles);
 }

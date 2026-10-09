@@ -32,6 +32,7 @@ public record UserSummary(
     string FirstName,
     string LastName,
     string Email,
+    string? Phone,
     Guid BranchId,
     bool IsActive,
     List<string> Roles
